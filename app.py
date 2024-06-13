@@ -181,4 +181,10 @@ elif selected == "Raport Comenzi":
 
     # Selectarea clientului pentru vizualizarea raportului
     client_name = st.selectbox("Selectează Clientul pentru Raport:", list(clients.keys()))
-    client = clients[client
+    client = clients[client_name]
+
+    # Afișarea raportului pentru clientul selectat
+    st.subheader(f"Raport Comenzi pentru {client_name}")
+    if client_name in data.get('orders', {}):
+        orders = data['orders'][client_name]
+        for order in orders:
