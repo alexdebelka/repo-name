@@ -173,4 +173,12 @@ elif selectat == "Editare Clienți și Produse":
         salveaza_date(date)
 
     # Add or Edit Products
-    st.subheader("Edit
+    st.subheader("Editare Produse")
+
+    # Display current products
+    st.write("Produse existente:")
+    for nume_produs, produs in produse.items():
+        st.write(f"{nume_produs}: {produs.pret} RON")
+
+    # Add new product
+   
