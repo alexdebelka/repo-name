@@ -171,3 +171,7 @@ elif selectat == "Editare Clienți și Produse":
                 date['comenzi'][nume_client_nou] = date['comenzi'][nume_client]
                 del date['comenzi'][nume_client]
         salveaza_date(date)
+
+    # Add or Edit Products
+    st.subheader("Editare Produse")
+    st.write("Pentru a adăuga sau edita produse,
