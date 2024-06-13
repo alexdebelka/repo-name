@@ -173,5 +173,4 @@ elif selectat == "Editare Clienți și Produse":
         salveaza_date(date)
 
     # Add or Edit Products
-    st.subheader("Editare Produse")
-    st.write("Pentru a adăuga sau edita produse,
+    st.subheader("Edit
