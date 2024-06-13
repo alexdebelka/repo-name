@@ -212,3 +212,9 @@ elif selected == "Edit Clients and Products":
     new_product_price = st.number_input("New Product Price (RON):", value=0)
 
     if st.button("Add New Product"):
+        if new_product_name.strip() == "":
+            st.warning("Product name cannot be empty!")
+        elif new_product_name in products:
+            st.warning(f"Product {new_product_name} already exists!")
+        else:
+            products[new_product_name] = Product
