@@ -2,6 +2,7 @@ import json
 import streamlit as st
 import os
 import pandas as pd
+from datetime import datetime
 
 # Fișierele JSON pentru stocarea datelor
 CLIENTS_FILE = 'clients.json'
@@ -35,7 +36,8 @@ def add_client(code, name, email, phone, credits):
         'name': name.lower(),
         'email': email,
         'phone': phone,
-        'credits': credits
+        'credits': credits,
+        'history': []
     }
     clients.append(new_client)
     write_json(CLIENTS_FILE, clients)
@@ -73,10 +75,22 @@ def add_product(name, price):
 def get_products():
     return read_json(PRODUCTS_FILE)
 
+# Funcție pentru adăugarea achiziției în istoricul clientului
+def add_purchase_history(client, products_purchased):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    for product_name, quantity in products_purchased.items():
+        if quantity > 0:
+            client['history'].append({
+                'timestamp': timestamp,
+                'product': product_name,
+                'quantity': quantity,
+                'total_cost': quantity * next(product['price'] for product in get_products() if product['name'] == product_name)
+            })
+
 # Interfața Streamlit
 st.title("Cafenea Prepaid Card System")
 
-menu = ["Add Client", "Find Client", "Manage Products", "Update Credits", "Purchase Products"]
+menu = ["Add Client", "Find Client", "Manage Products", "Update Credits", "Purchase Products", "View History"]
 choice = st.sidebar.selectbox("Menu", menu)
 
 if choice == "Add Client":
@@ -147,9 +161,8 @@ elif choice == "Purchase Products":
         client_code = None
 
     products = get_products()
-    product_names = [product['name'] for product in products]
-    selected_products = st.multiselect("Select Products", product_names)
-    
+    product_quantities = {product['name']: st.number_input(f"{product['name']} Quantity", min_value=0, step=1) for product in products}
+
     if st.button("Purchase"):
         if search_by == "Code":
             clients = find_client_by_code(client_code)
@@ -160,10 +173,28 @@ elif choice == "Purchase Products":
             st.warning("Client not found")
         else:
             client = clients[0]
-            total_cost = sum(product['price'] for product in products if product['name'] in selected_products)
+            total_cost = sum(product['price'] * quantity for product in products for name, quantity in product_quantities.items() if product['name'] == name)
             if client['credits'] >= total_cost:
                 client['credits'] -= total_cost
+                # Adăugăm achiziția în istoricul clientului
+                add_purchase_history(client, product_quantities)
                 write_json(CLIENTS_FILE, clients)
                 st.success(f"Purchase successful! Total cost: {total_cost} RON. Remaining credits: {client['credits']} RON.")
             else:
                 st.error(f"Not enough credits. Total cost: {total_cost} RON. Available credits: {client['credits']} RON.")
+
+elif choice == "View History":
+    st.subheader("View Purchase History")
+    client_code = st.text_input("Enter Client Code")
+    if st.button("View History"):
+        clients = find_client_by_code(client_code)
+        if clients:
+            client = clients[0]
+            if 'history' in client and client['history']:
+                history_df = pd.DataFrame(client['history'])
+                st.write(f"Purchase History for {client['name'].capitalize()}:")
+                st.dataframe(history_df)
+            else:
+                st.write(f"No purchase history for {client['name'].capitalize()}.")
+        else:
+            st.warning("Client not found")
