@@ -8,16 +8,39 @@ from datetime import datetime
 CLIENTS_FILE = 'clients.json'
 PRODUCTS_FILE = 'products.json'
 
+# Date default
+default_clients = [
+    {
+        'id': 1,
+        'code': '10',
+        'name': 'edu',
+        'email': 'edu@edu.ro',
+        'phone': '1234567890',
+        'credits': 100.0,  # Poți schimba valoarea default a creditelor
+        'history': []
+    }
+]
+
+default_products = [
+    {'id': 1, 'name': 'Espresso', 'price': 8.0},
+    {'id': 2, 'name': 'Mocha', 'price': 14.0},
+    {'id': 3, 'name': 'Latte', 'price': 10.0}
+]
+
 # Funcții pentru gestionarea fișierelor JSON
-def read_json(file):
+def read_json(file, default_data):
     if not os.path.exists(file):
         with open(file, 'w') as f:
-            json.dump([], f)
+            json.dump(default_data, f)
     with open(file, 'r') as f:
         try:
-            return json.load(f)
+            data = json.load(f)
+            if not data:  # Dacă fișierul este gol, îl populăm cu datele default
+                data = default_data
+                write_json(file, data)
+            return data
         except json.JSONDecodeError:
-            return []
+            return default_data
 
 def write_json(file, data):
     try:
@@ -29,7 +52,7 @@ def write_json(file, data):
 
 # Funcție pentru adăugarea unui client nou
 def add_client(code, name, email, phone, credits):
-    clients = read_json(CLIENTS_FILE)
+    clients = read_json(CLIENTS_FILE, default_clients)
     new_client = {
         'id': len(clients) + 1,
         'code': code.lower(),
@@ -44,17 +67,17 @@ def add_client(code, name, email, phone, credits):
 
 # Funcție pentru găsirea unui client după cod (case insensitive)
 def find_client_by_code(code):
-    clients = read_json(CLIENTS_FILE)
+    clients = read_json(CLIENTS_FILE, default_clients)
     return [client for client in clients if client['code'] == code.lower()]
 
 # Funcție pentru găsirea unui client după nume (case insensitive)
 def find_client_by_name(name):
-    clients = read_json(CLIENTS_FILE)
+    clients = read_json(CLIENTS_FILE, default_clients)
     return [client for client in clients if client['name'] == name.lower()]
 
 # Funcție pentru actualizarea creditelor unui client
 def update_credits(client_code, amount):
-    clients = read_json(CLIENTS_FILE)
+    clients = read_json(CLIENTS_FILE, default_clients)
     for client in clients:
         if client['code'] == client_code.lower():
             client['credits'] += amount
@@ -62,7 +85,7 @@ def update_credits(client_code, amount):
 
 # Funcție pentru adăugarea unui produs
 def add_product(name, price):
-    products = read_json(PRODUCTS_FILE)
+    products = read_json(PRODUCTS_FILE, default_products)
     new_product = {
         'id': len(products) + 1,
         'name': name,
@@ -73,7 +96,7 @@ def add_product(name, price):
 
 # Funcție pentru actualizarea unui produs
 def update_product(product_id, name, price):
-    products = read_json(PRODUCTS_FILE)
+    products = read_json(PRODUCTS_FILE, default_products)
     for product in products:
         if product['id'] == product_id:
             product['name'] = name
@@ -82,7 +105,7 @@ def update_product(product_id, name, price):
 
 # Funcție pentru listarea produselor
 def get_products():
-    return read_json(PRODUCTS_FILE)
+    return read_json(PRODUCTS_FILE, default_products)
 
 # Funcție pentru adăugarea achiziției în istoricul clientului
 def add_purchase_history(client, products_purchased):
@@ -176,6 +199,8 @@ elif choice == "Update Credits":
 elif choice == "Purchase Products":
     st.subheader("Purchase Products")
     search_by = st.radio("Search Client by", ("Code", "Name"))
+    client = None  # Inițializăm variabila client
+    
     if search_by == "Code":
         client_code = st.text_input("Enter Client Code")
         if st.button("Check Client", key="check_client_code"):
@@ -185,7 +210,6 @@ elif choice == "Purchase Products":
                 client = clients[0]
             else:
                 st.error("Client not found")
-                client = None
     elif search_by == "Name":
         client_name = st.text_input("Enter Client Name")
         if st.button("Check Client", key="check_client_name"):
@@ -195,7 +219,6 @@ elif choice == "Purchase Products":
                 client = clients[0]
             else:
                 st.error("Client not found")
-                client = None
 
     if client:
         products = get_products()
