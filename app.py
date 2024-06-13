@@ -127,36 +127,43 @@ elif selected == "Editare Clienți și Produse":
     st.title("Editare Clienți și Produse")
 
     # Editare Clienți
-    st.subheader("Editare Clienți")
-    client_name = st.selectbox("Selectează Clientul pentru Editare:", list(clients.keys()))
-    new_client_name = st.text_input("Nume Client Nou:", client_name)
-    new_client_credit = st.number_input("Credit Inițial:", value=clients[client_name].initial_credit)
+st.subheader("Editare Clienți")
+client_name = st.selectbox("Selectează Clientul pentru Editare:", list(clients.keys()))
+new_client_name = st.text_input("Nume Client Nou:", client_name)
+new_client_credit = st.number_input("Credit Inițial:", value=clients[client_name].initial_credit)
 
-    if st.button("Actualizează Client"):
-        if client_name in clients:
-            del clients[client_name]
-        clients[new_client_name] = Client(new_client_name, new_client_credit, new_client_credit)
-        data['clients'][new_client_name] = {'credit': new_client_credit, 'initial_credit': new_client_credit}
-        if client_name != new_client_name:
-            del data['clients'][client_name]
-        save_data(data)
-        st.success(f"Clientul {client_name} a fost actualizat la {new_client_name} cu un credit de {new_client_credit}.")
+# Buton pentru resetarea creditului pentru clientul selectat
+if st.button("Resetează Creditul"):
+    clients[client_name].credit = clients[client_name].initial_credit
+    data['clients'][client_name]['credit'] = clients[client_name].credit
+    save_data(data)
+    st.success(f"Creditul pentru {client_name} a fost resetat la {clients[client_name].initial_credit}.")
 
-    # Editare Produse
-    st.subheader("Editare Produse")
-    product_name = st.selectbox("Selectează Produsul pentru Editare:", list(products.keys()))
-    new_product_name = st.text_input("Nume Produs Nou:", product_name)
-    new_product_price = st.number_input("Preț Produs Nou:", value=products[product_name].price)
+if st.button("Actualizează Client"):
+    if client_name in clients:
+        del clients[client_name]
+    clients[new_client_name] = Client(new_client_name, new_client_credit, new_client_credit)
+    data['clients'][new_client_name] = {'credit': new_client_credit, 'initial_credit': new_client_credit}
+    if client_name != new_client_name:
+        del data['clients'][client_name]
+    save_data(data)
+    st.success(f"Clientul {client_name} a fost actualizat la {new_client_name} cu un credit de {new_client_credit}.")
 
-    if st.button("Actualizează Produs"):
-        if product_name in products:
-            del products[product_name]
-        products[new_product_name] = Product(new_product_name, new_product_price)
-        data['products'][new_product_name] = new_product_price
-        if product_name != new_product_name:
-            del data['products'][product_name]
-        save_data(data)
-        st.success(f"Produsul {product_name} a fost actualizat la {new_product_name} cu un preț de {new_product_price}.")
+# Editare Produse
+st.subheader("Editare Produse")
+product_name = st.selectbox("Selectează Produsul pentru Editare:", list(products.keys()))
+new_product_name = st.text_input("Nume Produs Nou:", product_name)
+new_product_price = st.number_input("Preț Produs Nou (RON):", value=products[product_name].price)
+
+if st.button("Actualizează Produs"):
+    if product_name in products:
+        del products[product_name]
+    products[new_product_name] = Product(new_product_name, new_product_price)
+    data['products'][new_product_name] = new_product_price
+    if product_name != new_product_name:
+        del data['products'][product_name]
+    save_data(data)
+    st.success(f"Produsul {product_name} a fost actualizat la {new_product_name} cu un preț de {new_product_price}.")
 
 # Pagina de Raport Comenzi
 elif selected == "Raport Comenzi":
