@@ -28,7 +28,7 @@ def incarca_date():
             date = json.load(f)
             return date
     else:
-        return {'clienti': {}, 'produse': {}}
+        return {'clienti': {}, 'produse': {}, 'comenzi': {}}
 
 def salveaza_date(date):
     with open(FISIER_DATE, 'w') as f:
@@ -37,9 +37,13 @@ def salveaza_date(date):
 # Încărcarea datelor existente
 date = incarca_date()
 
-# Verificăm dacă cheia 'clienti' există în date și, dacă nu, o inițializăm ca un dicționar gol
+# Verificăm și inițializăm dicționarele pentru clienți, produse și comenzi dacă nu există
 if 'clienti' not in date:
     date['clienti'] = {}
+if 'produse' not in date:
+    date['produse'] = {}
+if 'comenzi' not in date:
+    date['comenzi'] = {}
 
 # Crearea dicționarelor pentru clienți și produse din datele încărcate
 clienti = {
@@ -111,10 +115,7 @@ if selectat == "Formular de Comandă":
             salveaza_date(date)
 
             # Stocare detalii comandă în date
-            if 'comenzi' not in date:
-                date['comenzi'] = {}
-            if nume_client not in date['comenzi']:
-                date['comenzi'][nume_client] = []
+            date['comenzi'].setdefault(nume_client, [])
             date['comenzi'][nume_client].append({
                 'data': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 'produse': produse_selectate,
@@ -159,10 +160,4 @@ elif selectat == "Editare Clienți și Produse":
         clienti[nume_client_nou] = Client(nume_client_nou, credit_initial_client_nou, credit_initial_client_nou, numar_telefon_client_nou, id_unic_client_nou, email_client_nou)
         date['clienti'][nume_client_nou] = {
             'credit': credit_initial_client_nou,
-            'credit_initial': credit_initial_client_nou,
-            'numar_telefon': numar_telefon_client_nou,
-            'id_unic': id_unic_client_nou,
-            'email': email_client_nou
-        }
-        if nume_client != nume_client_nou:
-            del date['clienti'][nume_client]
+            'credit_initial': credit_initial_client_n
