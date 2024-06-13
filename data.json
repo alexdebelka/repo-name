@@ -1,1 +1,11 @@
-{}
+{
+  "clients": {
+    "Client1": {"credit": 1000, "initial_credit": 1000},
+    "Client2": {"credit": 1500, "initial_credit": 1500}
+  },
+  "products": {
+    "Produs1": 200,
+    "Produs2": 300,
+    "Produs3": 400
+  }
+}
