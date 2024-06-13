@@ -3,12 +3,15 @@ import json
 import os
 from datetime import datetime
 
-# Defining Client and Product classes
+# Define Client and Product classes
 class Client:
-    def __init__(self, name, credit, initial_credit):
+    def __init__(self, name, credit, initial_credit, phone_number, unique_id, email):
         self.name = name
         self.credit = credit
         self.initial_credit = initial_credit
+        self.phone_number = phone_number
+        self.unique_id = unique_id
+        self.email = email
 
 class Product:
     def __init__(self, name, price):
@@ -35,16 +38,28 @@ def save_data(data):
 data = load_data()
 
 # Creating dictionaries for clients and products from loaded data
-clients = {name: Client(name, info['credit'], info.get('initial_credit', info['credit'])) for name, info in data['clients'].items()}
+clients = {
+    name: Client(name, info['credit'], info.get('initial_credit', info['credit']), info.get('phone_number', ''), info.get('unique_id', ''), info.get('email', ''))
+    for name, info in data['clients'].items()
+}
 products = {name: Product(name, price) for name, price in data['products'].items()}
 
 # Adding initial data if not present in the file
 if not clients:
     clients = {
-        'Client1': Client('Client1', 1000, 1000),
-        'Client2': Client('Client2', 1500, 1500)
+        'Client1': Client('Client1', 1000, 1000, '123456789', 'ID001', 'client1@example.com'),
+        'Client2': Client('Client2', 1500, 1500, '987654321', 'ID002', 'client2@example.com')
     }
-    data['clients'] = {name: {'credit': client.credit, 'initial_credit': client.initial_credit} for name, client in clients.items()}
+    data['clients'] = {
+        name: {
+            'credit': client.credit,
+            'initial_credit': client.initial_credit,
+            'phone_number': client.phone_number,
+            'unique_id': client.unique_id,
+            'email': client.email
+        }
+        for name, client in clients.items()
+    }
     save_data(data)
 
 if not products:
@@ -68,11 +83,13 @@ if selected == "Order Form":
     client_name = st.selectbox("Select Client:", list(clients.keys()))
     client = clients[client_name]
 
-    # Selecting products and quantities
+    # Selecting products and quantities (two columns)
     st.subheader("Select Products and Quantities:")
+    col1, col2 = st.columns(2)
     quantities = {}
     for product_name, product in products.items():
-        quantities[product_name] = st.number_input(f"{product_name} ({product.price} RON per unit)", min_value=0, value=0)
+        with col1:
+            quantities[product_name] = st.number_input(f"{product_name} ({product.price} RON per unit)", min_value=0, value=0)
 
     # Button to create order
     if st.button("Create Order"):
@@ -87,6 +104,18 @@ if selected == "Order Form":
 
             # Updating client data and saving to JSON file
             data['clients'][client_name]['credit'] = client.credit
+            save_data(data)
+
+            # Storing order details in data
+            if 'orders' not in data:
+                data['orders'] = {}
+            if client_name not in data['orders']:
+                data['orders'][client_name] = []
+            data['orders'][client_name].append({
+                'datetime': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'products': selected_products,
+                'total_price': total_price
+            })
             save_data(data)
 
             # Displaying order details
@@ -109,6 +138,9 @@ elif selected == "Edit Clients and Products":
     client_name = st.selectbox("Select Client for Edit:", list(clients.keys()))
     new_client_name = st.text_input("New Client Name:", client_name)
     new_client_credit = st.number_input("Initial Credit (RON):", value=clients[client_name].initial_credit)
+    new_client_phone_number = st.text_input("Phone Number:", value=clients[client_name].phone_number)
+    new_client_unique_id = st.text_input("Unique ID:", value=clients[client_name].unique_id)
+    new_client_email = st.text_input("Email Address:", value=clients[client_name].email)
 
     # Button to reset credit for selected client
     if st.button("Reset Credit"):
@@ -120,8 +152,14 @@ elif selected == "Edit Clients and Products":
     if st.button("Update Client"):
         if client_name in clients:
             del clients[client_name]
-        clients[new_client_name] = Client(new_client_name, new_client_credit, new_client_credit)
-        data['clients'][new_client_name] = {'credit': new_client_credit, 'initial_credit': new_client_credit}
+        clients[new_client_name] = Client(new_client_name, new_client_credit, new_client_credit, new_client_phone_number, new_client_unique_id, new_client_email)
+        data['clients'][new_client_name] = {
+            'credit': new_client_credit,
+            'initial_credit': new_client_credit,
+            'phone_number': new_client_phone_number,
+            'unique_id': new_client_unique_id,
+            'email': new_client_email
+        }
         if client_name != new_client_name:
             del data['clients'][client_name]
         save_data(data)
@@ -131,6 +169,9 @@ elif selected == "Edit Clients and Products":
     st.subheader("Add New Client")
     new_client_name = st.text_input("New Client Name:")
     new_client_credit = st.number_input("Initial Credit (RON):", value=0)
+    new_client_phone_number = st.text_input("Phone Number:")
+    new_client_unique_id = st.text_input("Unique ID:")
+    new_client_email = st.text_input("Email Address:")
 
     if st.button("Add New Client"):
         if new_client_name.strip() == "":
@@ -138,8 +179,14 @@ elif selected == "Edit Clients and Products":
         elif new_client_name in clients:
             st.warning(f"Client {new_client_name} already exists!")
         else:
-            clients[new_client_name] = Client(new_client_name, new_client_credit, new_client_credit)
-            data['clients'][new_client_name] = {'credit': new_client_credit, 'initial_credit': new_client_credit}
+            clients[new_client_name] = Client(new_client_name, new_client_credit, new_client_credit, new_client_phone_number, new_client_unique_id, new_client_email)
+            data['clients'][new_client_name] = {
+                'credit': new_client_credit,
+                'initial_credit': new_client_credit,
+                'phone_number': new_client_phone_number,
+                'unique_id': new_client_unique_id,
+                'email': new_client_email
+            }
             save_data(data)
             st.success(f"Client {new_client_name} has been added successfully!")
 
@@ -165,36 +212,3 @@ elif selected == "Edit Clients and Products":
     new_product_price = st.number_input("New Product Price (RON):", value=0)
 
     if st.button("Add New Product"):
-        if new_product_name.strip() == "":
-            st.warning("Product name cannot be empty!")
-        elif new_product_name in products:
-            st.warning(f"Product {new_product_name} already exists!")
-        else:
-            products[new_product_name] = Product(new_product_name, new_product_price)
-            data['products'][new_product_name] = new_product_price
-            save_data(data)
-            st.success(f"Product {new_product_name} has been added successfully!")
-
-# Order Report Page
-elif selected == "Order Report":
-    st.title("Order Report")
-
-    # Selecting the client for viewing the report
-    client_name = st.selectbox("Select Client for Report:", list(clients.keys()))
-    client = clients[client_name]
-
-    # Displaying the report for the selected client
-    st.subheader(f"Order Report for {client_name}")
-    if client_name in data.get('orders', {}):
-        orders = data['orders'][client_name]
-        for order in orders:
-            # Displaying order details
-            st.write(f"Date and Time: {order['datetime']}")
-            st.write("Products:")
-            for product_name, quantity in order['products'].items():
-                st.write(f"- {product_name}: {quantity} units")
-            st.write("Total Price:", order['total_price'], "RON")
-            st.write("---")
-
-# Saving updated data back to the file
-save_data(data)
