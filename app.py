@@ -149,7 +149,7 @@ elif selected == "Edit Clients and Products":
         save_data(data)
         st.success(f"Credit for {client_name} has been reset to {clients[client_name].initial_credit} RON.")
 
-    if st.button("Update Client"):
+    elif st.button("Update Client"):
         if client_name in clients:
             del clients[client_name]
         clients[new_client_name] = Client(new_client_name, new_client_credit, new_client_credit, new_client_phone_number, new_client_unique_id, new_client_email)
@@ -209,9 +209,4 @@ elif selected == "Edit Clients and Products":
     # Add New Product
     st.subheader("Add New Product")
     new_product_name = st.text_input("New Product Name:")
-    new_product_price = st.number_input("New Product Price (RON):", value=0)
-
-    if st.button("Add New Product"):
-        if new_product_name.strip() == "":
-            st.warning("Product name cannot be empty!")
-        elif
+    new_product_price = st.number_input
