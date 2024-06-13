@@ -71,7 +71,7 @@ def get_products():
 # Interfața Streamlit
 st.title("Cafenea Prepaid Card System")
 
-menu = ["Add Client", "Find Client", "Manage Products", "Update Credits"]
+menu = ["Add Client", "Find Client", "Manage Products", "Update Credits", "Purchase Products"]
 choice = st.sidebar.selectbox("Menu", menu)
 
 if choice == "Add Client":
@@ -117,5 +117,25 @@ elif choice == "Update Credits":
     if st.button("Update"):
         update_credits(client_code, amount)
         st.success("Credits updated successfully")
+
+elif choice == "Purchase Products":
+    st.subheader("Purchase Products")
+    client_code = st.text_input("Client Code")
+    products = get_products()
+    product_names = [product['name'] for product in products]
+    selected_products = st.multiselect("Select Products", product_names)
+    if st.button("Purchase"):
+        clients = find_client_by_code(client_code)
+        if not clients:
+            st.warning("Client not found")
+        else:
+            client = clients[0]
+            total_cost = sum(product['price'] for product in products if product['name'] in selected_products)
+            if client['credits'] >= total_cost:
+                client['credits'] -= total_cost
+                write_json(CLIENTS_FILE, clients)
+                st.success(f"Purchase successful! Total cost: {total_cost} RON. Remaining credits: {client['credits']} RON.")
+            else:
+                st.error(f"Not enough credits. Total cost: {total_cost} RON. Available credits: {client['credits']} RON.")
 
 # Eliminăm apelul st.run()
