@@ -22,7 +22,7 @@ def write_json(file, data):
     try:
         with open(file, 'w') as f:
             json.dump(data, f, indent=4)
-        print(f"Succesfully written to {file}")
+        print(f"Successfully written to {file}")
     except Exception as e:
         print(f"Error writing to {file}: {e}")
 
@@ -32,7 +32,7 @@ def add_client(code, name, email, phone, credits):
     new_client = {
         'id': len(clients) + 1,
         'code': code.lower(),
-        'name': name,
+        'name': name.lower(),
         'email': email,
         'phone': phone,
         'credits': credits
@@ -44,6 +44,11 @@ def add_client(code, name, email, phone, credits):
 def find_client_by_code(code):
     clients = read_json(CLIENTS_FILE)
     return [client for client in clients if client['code'] == code.lower()]
+
+# Funcție pentru găsirea unui client după nume (case insensitive)
+def find_client_by_name(name):
+    clients = read_json(CLIENTS_FILE)
+    return [client for client in clients if client['name'] == name.lower()]
 
 # Funcție pentru actualizarea creditelor unui client
 def update_credits(client_code, amount):
@@ -87,16 +92,29 @@ if choice == "Add Client":
 
 elif choice == "Find Client":
     st.subheader("Find Client")
-    code = st.text_input("Search by Code")
-    if st.button("Search"):
-        clients = find_client_by_code(code)
-        if clients:
-            df = pd.DataFrame(clients)
-            df.rename(columns={'credits': 'credits (RON)'}, inplace=True)
-            st.write("Client Found:")
-            st.dataframe(df)
-        else:
-            st.warning("Client not found")
+    search_by = st.radio("Search by", ("Code", "Name"))
+    if search_by == "Code":
+        code = st.text_input("Enter Code")
+        if st.button("Search by Code"):
+            clients = find_client_by_code(code)
+            if clients:
+                df = pd.DataFrame(clients)
+                df.rename(columns={'credits': 'credits (RON)'}, inplace=True)
+                st.write("Client Found:")
+                st.dataframe(df)
+            else:
+                st.warning("Client not found")
+    elif search_by == "Name":
+        name = st.text_input("Enter Name")
+        if st.button("Search by Name"):
+            clients = find_client_by_name(name)
+            if clients:
+                df = pd.DataFrame(clients)
+                df.rename(columns={'credits': 'credits (RON)'}, inplace=True)
+                st.write("Client Found:")
+                st.dataframe(df)
+            else:
+                st.warning("Client not found")
 
 elif choice == "Manage Products":
     st.subheader("Manage Products")
@@ -120,12 +138,24 @@ elif choice == "Update Credits":
 
 elif choice == "Purchase Products":
     st.subheader("Purchase Products")
-    client_code = st.text_input("Client Code")
+    search_by = st.radio("Search Client by", ("Code", "Name"))
+    if search_by == "Code":
+        client_code = st.text_input("Enter Client Code")
+        client_name = None
+    elif search_by == "Name":
+        client_name = st.text_input("Enter Client Name")
+        client_code = None
+
     products = get_products()
     product_names = [product['name'] for product in products]
     selected_products = st.multiselect("Select Products", product_names)
+    
     if st.button("Purchase"):
-        clients = find_client_by_code(client_code)
+        if search_by == "Code":
+            clients = find_client_by_code(client_code)
+        elif search_by == "Name":
+            clients = find_client_by_name(client_name)
+        
         if not clients:
             st.warning("Client not found")
         else:
@@ -137,5 +167,3 @@ elif choice == "Purchase Products":
                 st.success(f"Purchase successful! Total cost: {total_cost} RON. Remaining credits: {client['credits']} RON.")
             else:
                 st.error(f"Not enough credits. Total cost: {total_cost} RON. Available credits: {client['credits']} RON.")
-
-# Eliminăm apelul st.run()
