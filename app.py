@@ -136,11 +136,11 @@ elif selected == "Edit Clients and Products":
     # Edit Clients
     st.subheader("Edit Clients")
     client_name = st.selectbox("Select Client for Edit:", list(clients.keys()))
-    new_client_name = st.text_input("New Client Name:", client_name)
-    new_client_credit = st.number_input("Initial Credit (RON):", value=clients[client_name].initial_credit)
-    new_client_phone_number = st.text_input("Phone Number:", value=clients[client_name].phone_number)
-    new_client_unique_id = st.text_input("Unique ID:", value=clients[client_name].unique_id)
-    new_client_email = st.text_input("Email Address:", value=clients[client_name].email)
+    new_client_name = st.text_input(f"New Client Name for {client_name}:", value=client_name)
+    new_client_credit = st.number_input(f"Initial Credit for {client_name} (RON):", value=clients[client_name].initial_credit)
+    new_client_phone_number = st.text_input(f"Phone Number for {client_name}:", value=clients[client_name].phone_number)
+    new_client_unique_id = st.text_input(f"Unique ID for {client_name}:", value=clients[client_name].unique_id)
+    new_client_email = st.text_input(f"Email Address for {client_name}:", value=clients[client_name].email)
 
     # Button to reset credit for selected client
     if st.button("Reset Credit"):
@@ -212,9 +212,4 @@ elif selected == "Edit Clients and Products":
     new_product_price = st.number_input("New Product Price (RON):", value=0)
 
     if st.button("Add New Product"):
-        if new_product_name.strip() == "":
-            st.warning("Product name cannot be empty!")
-        elif new_product_name in products:
-            st.warning(f"Product {new_product_name} already exists!")
-        else:
-            products[new_product_name] = Product
+        if new_product_name
