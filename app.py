@@ -9,9 +9,13 @@ PRODUCTS_FILE = 'products.json'
 # Funcții pentru gestionarea fișierelor JSON
 def read_json(file):
     if not os.path.exists(file):
-        return []
+        with open(file, 'w') as f:
+            json.dump([], f)
     with open(file, 'r') as f:
-        return json.load(f)
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return []
 
 def write_json(file, data):
     with open(file, 'w') as f:
@@ -103,5 +107,4 @@ elif choice == "Update Credits":
         update_credits(client_id, amount)
         st.success("Credits updated successfully")
 
-if __name__ == "__main__":
-    st.run()
+# Eliminăm apelul st.run()
