@@ -136,7 +136,7 @@ elif selected == "Editare Clienți și Produse":
         st.success(f"Clientul {client_name} a fost actualizat la {new_client_name} cu un credit de {new_client_credit}.")
         
     # Buton pentru resetarea creditului pentru clientul selectat
-    if st.button("Resetează Creditul"):
+        if st.button("Resetează Creditul"):
     clients[client_name].credit = clients[client_name].initial_credit
     data['clients'][client_name]['credit'] = clients[client_name].credit
     save_data(data)
