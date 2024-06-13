@@ -1,67 +1,39 @@
-import streamlit as st
-import pandas as pd
+from flask import Flask, render_template, request, redirect, url_for
 import json
 
-# Funcție pentru a încărca datele din fișierul JSON
-def load_data(filename):
-    with open(filename, 'r') as f:
-        data = json.load(f)
-    return data
+app = Flask(__name__)
 
-# Funcție pentru a salva datele înapoi în fișierul JSON
-def save_data(data, filename):
-    with open(filename, 'w') as f:
-        json.dump(data, f, indent=4)
+# Încărcăm datele din fișierul JSON
+with open('data.json', 'r') as f:
+    data = json.load(f)
 
-# Funcție pentru afișarea paginii de adăugare/modificare produse
-def add_modify_products(products):
-    st.header("Adăugare/Modificare Produse")
-    # Interfață pentru adăugare/modificare produse
-    # Poți utiliza formulare pentru a adăuga și modifica produsele din lista `products`
+clients = data['clients']
+products = data['products']
 
-# Funcție pentru afișarea paginii de rapoarte
-def show_reports(transactions):
-    st.header("Rapoarte")
-    # Interfață pentru afișarea rapoartelor detaliate pe tranzacții
+# Pagina principală care afișează formularul de comandă
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        client_id = int(request.form['client'])
+        selected_client = next(client for client in clients if client['id'] == client_id)
+        
+        selected_products = []
+        for product in products:
+            product_id_str = 'product_{}'.format(product['id'])
+            if product_id_str in request.form:
+                quantity = int(request.form[product_id_str])
+                if quantity > 0:
+                    selected_products.append({
+                        'id': product['id'],
+                        'name': product['name'],
+                        'quantity': quantity,
+                        'total_price': quantity * product['price']
+                    })
+        
+        # Aici poți face ce vrei cu datele, de exemplu, le poți salva într-o bază de date sau poți să le afișezi pe o altă pagină
+        return render_template('order_summary.html', client=selected_client, products=selected_products)
+    
+    return render_template('order_form.html', clients=clients, products=products)
 
-# Funcție pentru afișarea paginii de comenzi
-def show_orders(clients, products):
-    st.header("Formular Comenzi")
-    # Interfață pentru a selecta clienți și produse și a plasa comenzi
-
-    client_names = [client['name'] for client in clients]
-    selected_client = st.selectbox("Selectați clientul:", client_names)
-
-    product_names = [product['name'] for product in products]
-    selected_products = st.multiselect("Selectați produsele:", product_names)
-
-    if st.button("Plasează comanda"):
-        # Poți implementa aici logica de plasare a comenzii și actualizarea tranzacțiilor în baza de date
-        pass
-
-# Funcția principală pentru aplicația Streamlit
-def main():
-    st.title("Aplicație de Comenzi")
-
-    # Încărcare datelor din fișierul JSON
-    data = load_data('data.json')
-
-    # Extragere datelor
-    clients = data.get('clients', [])
-    products = data.get('products', [])
-    transactions = data.get('transactions', [])
-
-    # Pagina pentru adăugare/modificare produse
-    add_modify_products(products)
-
-    # Pagina pentru rapoarte
-    show_reports(transactions)
-
-    # Pagina pentru formularul de comenzi
-    show_orders(clients, products)
-
-    # Salvare date actualizate înapoi în fișierul JSON
-    save_data(data, 'data.json')
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    app.run(debug=True)
