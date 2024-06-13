@@ -110,13 +110,6 @@ if selected == "Formular Comandă":
                 st.write(f"{name}: {qty} unități - {products[name].price * qty} total")
             st.write(f"Preț total: {total_price}")
 
-    # Buton pentru resetarea creditului
-    if st.button("Resetează Creditul Total"):
-        client.credit = client.initial_credit
-        data['clients'][client_name]['credit'] = client.credit
-        save_data(data)
-        st.success(f"Creditul pentru {client_name} a fost resetat la {client.initial_credit}.")
-
     # Afișarea creditului curent al clientului
     st.subheader("Credit Curent")
     st.write(f"Client: {client.name}")
