@@ -1,39 +1,110 @@
-from flask import Flask, render_template, request, redirect, url_for
+import streamlit as st
 import json
 
-app = Flask(__name__)
+# Citirea bazei de date din fișierul JSON
+def citeste_baza_date():
+    with open('data.json', 'r') as f:
+        return json.load(f)
 
-# Încărcăm datele din fișierul JSON
-with open('data.json', 'r') as f:
-    data = json.load(f)
+# Salvarea bazei de date în fișierul JSON
+def salveaza_baza_date(data):
+    with open('data.json', 'w') as f:
+        json.dump(data, f, indent=4)
 
-clients = data['clients']
-products = data['products']
+def main():
+    st.title('Gestionare Client și Produse')
 
-# Pagina principală care afișează formularul de comandă
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
-        client_id = int(request.form['client'])
-        selected_client = next(client for client in clients if client['id'] == client_id)
-        
-        selected_products = []
-        for product in products:
-            product_id_str = 'product_{}'.format(product['id'])
-            if product_id_str in request.form:
-                quantity = int(request.form[product_id_str])
-                if quantity > 0:
-                    selected_products.append({
-                        'id': product['id'],
-                        'name': product['name'],
-                        'quantity': quantity,
-                        'total_price': quantity * product['price']
-                    })
-        
-        # Aici poți face ce vrei cu datele, de exemplu, le poți salva într-o bază de date sau poți să le afișezi pe o altă pagină
-        return render_template('order_summary.html', client=selected_client, products=selected_products)
+    data = citeste_baza_date()
+
+    # Selectare client existent și adăugare produse
+    st.header('Selectare Client și Adăugare Produse')
+    client_selectat = st.selectbox('Selectați clientul:', list(data.keys()))
     
-    return render_template('order_form.html', clients=clients, products=products)
+    if client_selectat:
+        client = data[client_selectat]
+        credit_initial = client['credit_initial']
+        st.write(f"Credit disponibil pentru {client_selectat}: {credit_initial} RON")
+        
+        # Adăugare produse
+        st.subheader('Adăugare Produse')
+        produs = st.text_input('Numele produsului:')
+        pret = st.number_input('Pretul produsului:', min_value=0.0, step=0.01)
+        
+        if st.button('Adaugă produs'):
+            if 'produse' not in client:
+                client['produse'] = []
+            
+            client['produse'].append({'nume': produs, 'pret': pret})
+            credit_initial -= pret
+            client['credit_initial'] = credit_initial
+            salveaza_baza_date(data)
+            st.success('Produs adăugat cu succes!')
+    
+    # Notificare dacă creditul este insuficient
+    if credit_initial <= 0:
+        st.warning('Creditul este insuficient!')
+
+def adauga_client_nou():
+    st.title('Adăugare Client Nou')
+
+    # Formular pentru adăugarea unui client nou
+    id_unic = st.text_input('ID Unic:')
+    nume = st.text_input('Nume:')
+    prenume = st.text_input('Prenume:')
+    telefon = st.text_input('Telefon:')
+    email = st.text_input('Email:')
+
+    if st.button('Adaugă Client Nou'):
+        data = citeste_baza_date()
+        if id_unic in data:
+            st.error('Clientul cu acest ID unic există deja!')
+        else:
+            data[id_unic] = {
+                'nume': nume,
+                'prenume': prenume,
+                'telefon': telefon,
+                'email': email,
+                'credit_initial': 0,  # Inițializare credit
+                'produse': []  # Lista produselor achiziționate
+            }
+            salveaza_baza_date(data)
+            st.success('Clientul a fost adăugat cu succes!')
+
+def gestioneaza_produse():
+    st.title('Gestionare Produse')
+
+    data = citeste_baza_date()
+
+    # Listare produse existente și editare preț
+    st.header('Editare Produse')
+    for client_id, client_data in data.items():
+        st.subheader(f"Produse pentru {client_data['nume']} {client_data['prenume']}")
+        if 'produse' in client_data:
+            for produs in client_data['produse']:
+                st.write(f"Nume: {produs['nume']}, Pret: {produs['pret']}")
+                
+                # Formular pentru editarea prețului produsului
+                nou_pret = st.number_input('Noul pret:', min_value=0.0, step=0.01, value=produs['pret'])
+                
+                if st.button('Salvează modificări'):
+                    produs['pret'] = nou_pret
+                    salveaza_baza_date(data)
+                    st.success('Prețul produsului a fost actualizat cu succes!')
+
+def raport_complet():
+    st.title('Raport Complet al Vânzărilor')
+
+    data = citeste_baza_date()
+
+    # Listare vânzări pentru fiecare client
+    for client_id, client_data in data.items():
+        st.subheader(f"Raport pentru {client_data['nume']} {client_data['prenume']}")
+        if 'produse' in client_data:
+            total_vanzari = sum(produs['pret'] for produs in client_data['produse'])
+            st.write(f"Total vânzări: {total_vanzari} RON")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    main()
+    adauga_client_nou()
+    gestioneaza_produse()
+    raport_complet()
