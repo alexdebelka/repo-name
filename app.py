@@ -37,6 +37,7 @@ def show_orders(clients, products):
 
     if st.button("Plasează comanda"):
         # Poți implementa aici logica de plasare a comenzii și actualizarea tranzacțiilor în baza de date
+        pass
 
 # Funcția principală pentru aplicația Streamlit
 def main():
