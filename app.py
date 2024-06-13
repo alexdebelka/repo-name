@@ -3,210 +3,172 @@ import json
 import os
 from datetime import datetime
 
-# Define Client and Product classes
+# Definirea claselor Client și Produs
 class Client:
-    def __init__(self, name, credit, initial_credit, phone_number, unique_id, email):
-        self.name = name
+    def __init__(self, nume, credit, credit_initial, numar_telefon, id_unic, email):
+        self.nume = nume
         self.credit = credit
-        self.initial_credit = initial_credit
-        self.phone_number = phone_number
-        self.unique_id = unique_id
+        self.credit_initial = credit_initial
+        self.numar_telefon = numar_telefon
+        self.id_unic = id_unic
         self.email = email
 
-class Product:
-    def __init__(self, name, price):
-        self.name = name
-        self.price = price
+class Produs:
+    def __init__(self, nume, pret):
+        self.nume = nume
+        self.pret = pret
 
-# File to store data
-DATA_FILE = 'data.json'
+# Fișier pentru stocarea datelor
+FISIER_DATE = 'data.json'
 
-# Functions to read and write data to JSON file
-def load_data():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r') as f:
-            data = json.load(f)
-            return data
+# Funcții pentru citirea și scrierea datelor în fișierul JSON
+def incarca_date():
+    if os.path.exists(FISIER_DATE):
+        with open(FISIER_DATE, 'r') as f:
+            date = json.load(f)
+            return date
     else:
-        return {'clients': {}, 'products': {}}
+        return {'clienti': {}, 'produse': {}}
 
-def save_data(data):
-    with open(DATA_FILE, 'w') as f:
-        json.dump(data, f)
+def salveaza_date(date):
+    with open(FISIER_DATE, 'w') as f:
+        json.dump(date, f)
 
-# Loading existing data
-data = load_data()
+# Încărcarea datelor existente
+date = incarca_date()
 
-# Creating dictionaries for clients and products from loaded data
-clients = {
-    name: Client(name, info['credit'], info.get('initial_credit', info['credit']), info.get('phone_number', ''), info.get('unique_id', ''), info.get('email', ''))
-    for name, info in data['clients'].items()
+# Crearea dicționarelor pentru clienți și produse din datele încărcate
+clienti = {
+    nume: Client(nume, info['credit'], info.get('credit_initial', info['credit']), info.get('numar_telefon', ''), info.get('id_unic', ''), info.get('email', ''))
+    for nume, info in date['clienti'].items()
 }
-products = {name: Product(name, price) for name, price in data['products'].items()}
+produse = {nume: Produs(nume, pret) for nume, pret in date['produse'].items()}
 
-# Adding initial data if not present in the file
-if not clients:
-    clients = {
+# Adăugarea datelor inițiale dacă nu sunt prezente în fișier
+if not clienti:
+    clienti = {
         'Client1': Client('Client1', 1000, 1000, '123456789', 'ID001', 'client1@example.com'),
         'Client2': Client('Client2', 1500, 1500, '987654321', 'ID002', 'client2@example.com')
     }
-    data['clients'] = {
-        name: {
+    date['clienti'] = {
+        nume: {
             'credit': client.credit,
-            'initial_credit': client.initial_credit,
-            'phone_number': client.phone_number,
-            'unique_id': client.unique_id,
+            'credit_initial': client.credit_initial,
+            'numar_telefon': client.numar_telefon,
+            'id_unic': client.id_unic,
             'email': client.email
         }
-        for name, client in clients.items()
+        for nume, client in clienti.items()
     }
-    save_data(data)
+    salveaza_date(date)
 
-if not products:
-    products = {
-        'Produs1': Product('Produs1', 200),
-        'Produs2': Product('Produs2', 300),
-        'Produs3': Product('Produs3', 400)
+if not produse:
+    produse = {
+        'Produs1': Produs('Produs1', 200),
+        'Produs2': Produs('Produs2', 300),
+        'Produs3': Produs('Produs3', 400)
     }
-    data['products'] = {name: product.price for name, product in products.items()}
-    save_data(data)
+    date['produse'] = {nume: produs.pret for nume, produs in produse.items()}
+    salveaza_date(date)
 
-# Navigation menu
+# Meniul de navigare
 with st.sidebar:
-    selected = st.radio("Navigation", ["Order Form", "Edit Clients and Products", "Order Report"])
+    selectat = st.radio("Navigare", ["Formular de Comandă", "Editare Clienți și Produse", "Raport Comenzi"])
 
-# Order Form Page
-if selected == "Order Form":
-    st.title("Order Form")
+# Pagina Formular de Comandă
+if selectat == "Formular de Comandă":
+    st.title("Formular de Comandă")
 
-    # Selecting the client
-    client_name = st.selectbox("Select Client:", list(clients.keys()))
-    client = clients[client_name]
+    # Selectarea clientului
+    nume_client = st.selectbox("Selectați Clientul:", list(clienti.keys()))
+    client = clienti[nume_client]
 
-    # Selecting products and quantities (two columns)
-    st.subheader("Select Products and Quantities:")
+    # Selectarea produselor și a cantităților (două coloane)
+    st.subheader("Selectați Produsele și Cantitățile:")
     col1, col2 = st.columns(2)
-    quantities = {}
-    for product_name, product in products.items():
+    cantitati = {}
+    for nume_produs, produs in produse.items():
         with col1:
-            quantities[product_name] = st.number_input(f"{product_name} ({product.price} RON per unit)", min_value=0, value=0)
+            cantitati[nume_produs] = st.number_input(f"{nume_produs} ({produs.pret} RON pe unitate)", min_value=0, value=0)
 
-    # Button to create order
-    if st.button("Create Order"):
-        selected_products = {name: qty for name, qty in quantities.items() if qty > 0}
-        total_price = sum(products[name].price * qty for name, qty in selected_products.items())
+    # Buton pentru crearea comenzii
+    if st.button("Creează Comandă"):
+        produse_selectate = {nume: qty for nume, qty in cantitati.items() if qty > 0}
+        pret_total = sum(produse[nume].pret * qty for nume, qty in produse_selectate.items())
 
-        if total_price > client.credit:
-            st.error(f"Insufficient credit. Available credit: {client.credit} RON")
+        if pret_total > client.credit:
+            st.error(f"Credit insuficient. Credit disponibil: {client.credit} RON")
         else:
-            client.credit -= total_price
-            st.success(f"Order created! Remaining credit: {client.credit} RON")
+            client.credit -= pret_total
+            st.success(f"Comandă creată! Credit rămas: {client.credit} RON")
 
-            # Updating client data and saving to JSON file
-            data['clients'][client_name]['credit'] = client.credit
-            save_data(data)
+            # Actualizare date client și salvare în fișierul JSON
+            date['clienti'][nume_client]['credit'] = client.credit
+            salveaza_date(date)
 
-            # Storing order details in data
-            if 'orders' not in data:
-                data['orders'] = {}
-            if client_name not in data['orders']:
-                data['orders'][client_name] = []
-            data['orders'][client_name].append({
-                'datetime': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                'products': selected_products,
-                'total_price': total_price
+            # Stocare detalii comandă în date
+            if 'comenzi' not in date:
+                date['comenzi'] = {}
+            if nume_client not in date['comenzi']:
+                date['comenzi'][nume_client] = []
+            date['comenzi'][nume_client].append({
+                'data': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'produse': produse_selectate,
+                'pret_total': pret_total
             })
-            save_data(data)
+            salveaza_date(date)
 
-            # Displaying order details
-            st.subheader("Order Details:")
-            for name, qty in selected_products.items():
-                st.write(f"{name}: {qty} units - {products[name].price * qty} RON total")
-            st.write(f"Total price: {total_price} RON")
+            # Afișare detalii comandă
+            st.subheader("Detalii Comandă:")
+            for nume, qty in produse_selectate.items():
+                st.write(f"{nume}: {qty} unități - {produse[nume].pret * qty} RON total")
+            st.write(f"Pret total: {pret_total} RON")
 
-    # Displaying current credit of the client
-    st.subheader("Current Credit")
-    st.write(f"Client: {client.name}")
-    st.write(f"Available credit: {client.credit} RON")
+    # Afișare credit curent al clientului
+    st.subheader("Credit Curent")
+    st.write(f"Client: {client.nume}")
+    st.write(f"Credit disponibil: {client.credit} RON")
 
-# Edit Clients and Products Page
-elif selected == "Edit Clients and Products":
-    st.title("Edit Clients and Products")
+# Pagina Editare Clienți și Produse
+elif selectat == "Editare Clienți și Produse":
+    st.title("Editare Clienți și Produse")
 
-    # Edit Clients
-    st.subheader("Edit Clients")
-    client_name = st.selectbox("Select Client for Edit:", list(clients.keys()))
-    new_client_name = st.text_input(f"New Client Name for {client_name}:", value=client_name)
-    new_client_credit = st.number_input(f"Initial Credit for {client_name} (RON):", value=clients[client_name].initial_credit)
-    new_client_phone_number = st.text_input(f"Phone Number for {client_name}:", value=clients[client_name].phone_number)
-    new_client_unique_id = st.text_input(f"Unique ID for {client_name}:", value=clients[client_name].unique_id)
-    new_client_email = st.text_input(f"Email Address for {client_name}:", value=clients[client_name].email)
+    # Editare Clienți
+    st.subheader("Editare Clienți")
+    nume_client = st.selectbox("Selectați Clientul pentru Editare:", list(clienti.keys()))
+    nume_client_nou = st.text_input(f"Nume Client Nou pentru {nume_client}:", value=nume_client)
+    credit_initial_client_nou = st.number_input(f"Credit Initial pentru {nume_client} (RON):", value=clienti[nume_client].credit_initial)
+    numar_telefon_client_nou = st.text_input(f"Număr Telefon pentru {nume_client}:", value=clienti[nume_client].numar_telefon)
+    id_unic_client_nou = st.text_input(f"ID Unic pentru {nume_client}:", value=clienti[nume_client].id_unic)
+    email_client_nou = st.text_input(f"Adresă Email pentru {nume_client}:", value=clienti[nume_client].email)
 
-    # Button to reset credit for selected client
-    if st.button("Reset Credit"):
-        clients[client_name].credit = clients[client_name].initial_credit
-        data['clients'][client_name]['credit'] = clients[client_name].credit
-        save_data(data)
-        st.success(f"Credit for {client_name} has been reset to {clients[client_name].initial_credit} RON.")
+    # Buton pentru resetarea creditului pentru clientul selectat
+    if st.button("Resetare Credit"):
+        clienti[nume_client].credit = clienti[nume_client].credit_initial
+        date['clienti'][nume_client]['credit'] = clienti[nume_client].credit
+        salveaza_date(date)
+        st.success(f"Credit pentru {nume_client} a fost resetat la {clienti[nume_client].credit_initial} RON.")
 
-    elif st.button("Update Client"):
-        if client_name in clients:
-            del clients[client_name]
-        clients[new_client_name] = Client(new_client_name, new_client_credit, new_client_credit, new_client_phone_number, new_client_unique_id, new_client_email)
-        data['clients'][new_client_name] = {
-            'credit': new_client_credit,
-            'initial_credit': new_client_credit,
-            'phone_number': new_client_phone_number,
-            'unique_id': new_client_unique_id,
-            'email': new_client_email
+    elif st.button("Actualizare Client"):
+        if nume_client in clienti:
+            del clienti[nume_client]
+        clienti[nume_client_nou] = Client(nume_client_nou, credit_initial_client_nou, credit_initial_client_nou, numar_telefon_client_nou, id_unic_client_nou, email_client_nou)
+        date['clienti'][nume_client_nou] = {
+            'credit': credit_initial_client_nou,
+            'credit_initial': credit_initial_client_nou,
+            'numar_telefon': numar_telefon_client_nou,
+            'id_unic': id_unic_client_nou,
+            'email': email_client_nou
         }
-        if client_name != new_client_name:
-            del data['clients'][client_name]
-        save_data(data)
-        st.success(f"Client {client_name} has been updated to {new_client_name} with a credit of {new_client_credit} RON.")
+        if nume_client != nume_client_nou:
+            del date['clienti'][nume_client]
+        salveaza_date(date)
+        st.success(f"Clientul {nume_client} a fost actualizat la {nume_client_nou} cu un credit de {credit_initial_client_nou} RON.")
 
-    # Add New Client
-    st.subheader("Add New Client")
-    new_client_name = st.text_input("New Client Name:")
-    new_client_credit = st.number_input("Initial Credit (RON):", value=0)
-    new_client_phone_number = st.text_input("Phone Number:")
-    new_client_unique_id = st.text_input("Unique ID:")
-    new_client_email = st.text_input("Email Address:")
-
-    if st.button("Add New Client"):
-        if new_client_name.strip() == "":
-            st.warning("Client name cannot be empty!")
-        elif new_client_name in clients:
-            st.warning(f"Client {new_client_name} already exists!")
-        else:
-            clients[new_client_name] = Client(new_client_name, new_client_credit, new_client_credit, new_client_phone_number, new_client_unique_id, new_client_email)
-            data['clients'][new_client_name] = {
-                'credit': new_client_credit,
-                'initial_credit': new_client_credit,
-                'phone_number': new_client_phone_number,
-                'unique_id': new_client_unique_id,
-                'email': new_client_email
-            }
-            save_data(data)
-            st.success(f"Client {new_client_name} has been added successfully!")
-
-    # Edit Products
-    st.subheader("Edit Products")
-    product_name = st.selectbox("Select Product for Edit:", list(products.keys()))
-    new_product_name = st.text_input("New Product Name:", product_name)
-    new_product_price = st.number_input("New Product Price (RON):", value=products[product_name].price)
-
-    if st.button("Update Product"):
-        if product_name in products:
-            del products[product_name]
-        products[new_product_name] = Product(new_product_name, new_product_price)
-        data['products'][new_product_name] = new_product_price
-        if product_name != new_product_name:
-            del data['products'][product_name]
-        save_data(data)
-        st.success(f"Product {product_name} has been updated to {new_product_name} with a price of {new_product_price} RON.")
-
-    # Add New Product
-    st.subheader("Add New Product")
-    new_product_name = st.text_input("New Product Name:")
-    new_product_price = st.number_input
+    # Adăugare Client Nou
+    st.subheader("Adăugare Client Nou")
+    nume_client_nou = st.text_input("Nume Client Nou:")
+    credit_initial_client_nou = st.number_input("Credit Initial (RON):", value=0)
+    numar_telefon_client_nou = st.text_input("Număr Telefon:")
+    id_unic_client_nou = st.text_input("ID Unic:")
+    email_client_nou
