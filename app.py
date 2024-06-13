@@ -37,6 +37,10 @@ def salveaza_date(date):
 # Încărcarea datelor existente
 date = incarca_date()
 
+# Verificăm dacă cheia 'clienti' există în date și, dacă nu, o inițializăm ca un dicționar gol
+if 'clienti' not in date:
+    date['clienti'] = {}
+
 # Crearea dicționarelor pentru clienți și produse din datele încărcate
 clienti = {
     nume: Client(nume, info['credit'], info.get('credit_initial', info['credit']), info.get('numar_telefon', ''), info.get('id_unic', ''), info.get('email', ''))
@@ -162,13 +166,3 @@ elif selectat == "Editare Clienți și Produse":
         }
         if nume_client != nume_client_nou:
             del date['clienti'][nume_client]
-        salveaza_date(date)
-        st.success(f"Clientul {nume_client} a fost actualizat la {nume_client_nou} cu un credit de {credit_initial_client_nou} RON.")
-
-    # Adăugare Client Nou
-    st.subheader("Adăugare Client Nou")
-    nume_client_nou = st.text_input("Nume Client Nou:")
-    credit_initial_client_nou = st.number_input("Credit Initial (RON):", value=0)
-    numar_telefon_client_nou = st.text_input("Număr Telefon:")
-    id_unic_client_nou = st.text_input("ID Unic:")
-    email_client_nou
