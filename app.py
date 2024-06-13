@@ -22,10 +22,11 @@ def write_json(file, data):
         json.dump(data, f, indent=4)
 
 # Funcție pentru adăugarea unui client nou
-def add_client(name, email, phone):
+def add_client(code, name, email, phone):
     clients = read_json(CLIENTS_FILE)
     new_client = {
         'id': len(clients) + 1,
+        'code': code.lower(),
         'name': name,
         'email': email,
         'phone': phone,
@@ -34,16 +35,16 @@ def add_client(name, email, phone):
     clients.append(new_client)
     write_json(CLIENTS_FILE, clients)
 
-# Funcție pentru găsirea unui client
-def find_client(name):
+# Funcție pentru găsirea unui client după cod (case insensitive)
+def find_client_by_code(code):
     clients = read_json(CLIENTS_FILE)
-    return [client for client in clients if client['name'] == name]
+    return [client for client in clients if client['code'] == code.lower()]
 
 # Funcție pentru actualizarea creditelor unui client
-def update_credits(client_id, amount):
+def update_credits(client_code, amount):
     clients = read_json(CLIENTS_FILE)
     for client in clients:
-        if client['id'] == client_id:
+        if client['code'] == client_code.lower():
             client['credits'] += amount
     write_json(CLIENTS_FILE, clients)
 
@@ -70,18 +71,19 @@ choice = st.sidebar.selectbox("Menu", menu)
 
 if choice == "Add Client":
     st.subheader("Add Client")
+    code = st.text_input("Code")
     name = st.text_input("Name")
     email = st.text_input("Email")
     phone = st.text_input("Phone")
     if st.button("Add"):
-        add_client(name, email, phone)
+        add_client(code, name, email, phone)
         st.success("Client added successfully")
 
 elif choice == "Find Client":
     st.subheader("Find Client")
-    name = st.text_input("Search by Name")
+    code = st.text_input("Search by Code")
     if st.button("Search"):
-        clients = find_client(name)
+        clients = find_client_by_code(code)
         if clients:
             st.write("Client Found: ", clients)
         else:
@@ -101,10 +103,10 @@ elif choice == "Manage Products":
 
 elif choice == "Update Credits":
     st.subheader("Update Credits")
-    client_id = st.number_input("Client ID", min_value=1)
+    client_code = st.text_input("Client Code")
     amount = st.number_input("Amount", min_value=-100.0, max_value=100.0)
     if st.button("Update"):
-        update_credits(client_id, amount)
+        update_credits(client_code, amount)
         st.success("Credits updated successfully")
 
 # Eliminăm apelul st.run()
