@@ -1,6 +1,7 @@
 import json
 import streamlit as st
 import os
+import pandas as pd
 
 # Fișierele JSON pentru stocarea datelor
 CLIENTS_FILE = 'clients.json'
@@ -18,11 +19,15 @@ def read_json(file):
             return []
 
 def write_json(file, data):
-    with open(file, 'w') as f:
-        json.dump(data, f, indent=4)
+    try:
+        with open(file, 'w') as f:
+            json.dump(data, f, indent=4)
+        print(f"Succesfully written to {file}")
+    except Exception as e:
+        print(f"Error writing to {file}: {e}")
 
 # Funcție pentru adăugarea unui client nou
-def add_client(code, name, email, phone):
+def add_client(code, name, email, phone, credits):
     clients = read_json(CLIENTS_FILE)
     new_client = {
         'id': len(clients) + 1,
@@ -30,7 +35,7 @@ def add_client(code, name, email, phone):
         'name': name,
         'email': email,
         'phone': phone,
-        'credits': 0
+        'credits': credits
     }
     clients.append(new_client)
     write_json(CLIENTS_FILE, clients)
@@ -75,8 +80,9 @@ if choice == "Add Client":
     name = st.text_input("Name")
     email = st.text_input("Email")
     phone = st.text_input("Phone")
+    credits = st.number_input("Credits (RON)", min_value=0.0)
     if st.button("Add"):
-        add_client(code, name, email, phone)
+        add_client(code, name, email, phone, credits)
         st.success("Client added successfully")
 
 elif choice == "Find Client":
@@ -85,7 +91,10 @@ elif choice == "Find Client":
     if st.button("Search"):
         clients = find_client_by_code(code)
         if clients:
-            st.write("Client Found: ", clients)
+            df = pd.DataFrame(clients)
+            df.rename(columns={'credits': 'credits (RON)'}, inplace=True)
+            st.write("Client Found:")
+            st.dataframe(df)
         else:
             st.warning("Client not found")
 
@@ -98,13 +107,13 @@ elif choice == "Manage Products":
         st.success("Product added successfully")
     st.subheader("Product List")
     products = get_products()
-    for product in products:
-        st.write(f"Name: {product['name']}, Price: {product['price']}")
+    df = pd.DataFrame(products)
+    st.dataframe(df)
 
 elif choice == "Update Credits":
     st.subheader("Update Credits")
     client_code = st.text_input("Client Code")
-    amount = st.number_input("Amount", min_value=-100.0, max_value=100.0)
+    amount = st.number_input("Amount (RON)", min_value=-100.0, max_value=100.0)
     if st.button("Update"):
         update_credits(client_code, amount)
         st.success("Credits updated successfully")
