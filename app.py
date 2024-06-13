@@ -71,6 +71,15 @@ def add_product(name, price):
     products.append(new_product)
     write_json(PRODUCTS_FILE, products)
 
+# Funcție pentru actualizarea unui produs
+def update_product(product_id, name, price):
+    products = read_json(PRODUCTS_FILE)
+    for product in products:
+        if product['id'] == product_id:
+            product['name'] = name
+            product['price'] = price
+    write_json(PRODUCTS_FILE, products)
+
 # Funcție pentru listarea produselor
 def get_products():
     return read_json(PRODUCTS_FILE)
@@ -132,11 +141,25 @@ elif choice == "Find Client":
 
 elif choice == "Manage Products":
     st.subheader("Manage Products")
-    product_name = st.text_input("Product Name")
-    product_price = st.number_input("Product Price", min_value=0.0)
+    products = get_products()
+    product_names = [product['name'] for product in products]
+    selected_product_name = st.selectbox("Select Product to Edit", product_names)
+    selected_product = next((product for product in products if product['name'] == selected_product_name), None)
+    
+    if selected_product:
+        new_name = st.text_input("Product Name", value=selected_product['name'])
+        new_price = st.number_input("Product Price", min_value=0.0, value=selected_product['price'])
+        if st.button("Update Product"):
+            update_product(selected_product['id'], new_name, new_price)
+            st.success("Product updated successfully")
+
+    st.subheader("Add New Product")
+    product_name = st.text_input("New Product Name")
+    product_price = st.number_input("New Product Price", min_value=0.0)
     if st.button("Add Product"):
         add_product(product_name, product_price)
         st.success("Product added successfully")
+    
     st.subheader("Product List")
     products = get_products()
     df = pd.DataFrame(products)
@@ -155,24 +178,30 @@ elif choice == "Purchase Products":
     search_by = st.radio("Search Client by", ("Code", "Name"))
     if search_by == "Code":
         client_code = st.text_input("Enter Client Code")
-        client_name = None
+        if st.button("Check Client", key="check_client_code"):
+            clients = find_client_by_code(client_code)
+            if clients:
+                st.success("Client found")
+                client = clients[0]
+            else:
+                st.error("Client not found")
+                client = None
     elif search_by == "Name":
         client_name = st.text_input("Enter Client Name")
-        client_code = None
-
-    products = get_products()
-    product_quantities = {product['name']: st.number_input(f"{product['name']} Quantity", min_value=0, step=1) for product in products}
-
-    if st.button("Purchase"):
-        if search_by == "Code":
-            clients = find_client_by_code(client_code)
-        elif search_by == "Name":
+        if st.button("Check Client", key="check_client_name"):
             clients = find_client_by_name(client_name)
+            if clients:
+                st.success("Client found")
+                client = clients[0]
+            else:
+                st.error("Client not found")
+                client = None
+
+    if client:
+        products = get_products()
+        product_quantities = {product['name']: st.number_input(f"{product['name']} Quantity", min_value=0, step=1) for product in products}
         
-        if not clients:
-            st.warning("Client not found")
-        else:
-            client = clients[0]
+        if st.button("Purchase"):
             total_cost = sum(product['price'] * quantity for product in products for name, quantity in product_quantities.items() if product['name'] == name)
             if client['credits'] >= total_cost:
                 client['credits'] -= total_cost
