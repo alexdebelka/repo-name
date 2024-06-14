@@ -4,6 +4,31 @@ import os
 import pandas as pd
 from datetime import datetime
 
+# CSS pentru a schimba culorile
+st.markdown("""
+    <style>
+    .stButton>button {
+        background-color: #FAD02C;
+        color: black;
+    }
+    .stRadio>div>div>label {
+        color: #FAD02C;
+    }
+    .stSidebar>div {
+        background-color: #FAD02C;
+    }
+    .stTextInput>div>div>input {
+        color: black;
+    }
+    .stNumberInput>div>div>input {
+        color: black;
+    }
+    .stDataFrame>div>div>div>table {
+        background-color: #FAD02C;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Fișierele JSON pentru stocarea datelor
 CLIENTS_FILE = 'clients.json'
 PRODUCTS_FILE = 'products.json'
