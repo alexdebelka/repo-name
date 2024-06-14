@@ -123,7 +123,7 @@ def add_purchase_history(client, products_purchased):
 st.title("Cafenea Prepaid Card System")
 
 menu = ["Add Client", "Find Client", "Manage Products", "Update Credits", "Purchase Products", "View History"]
-choice = st.sidebar.selectbox("Menu", menu)
+choice = st.sidebar.radio("Menu", menu)
 
 if choice == "Add Client":
     st.subheader("Add Client")
@@ -208,6 +208,7 @@ elif choice == "Purchase Products":
             if clients:
                 st.success("Client found")
                 client = clients[0]
+                st.session_state['client'] = client  # Salvăm clientul în session state
             else:
                 st.error("Client not found")
     elif search_by == "Name":
@@ -217,9 +218,13 @@ elif choice == "Purchase Products":
             if clients:
                 st.success("Client found")
                 client = clients[0]
+                st.session_state['client'] = client  # Salvăm clientul în session state
             else:
                 st.error("Client not found")
 
+    # Verificăm dacă avem client în session state
+    client = st.session_state.get('client', None)
+    
     if client:
         products = get_products()
         product_quantities = {product['name']: st.number_input(f"{product['name']} Quantity", min_value=0, step=1) for product in products}
