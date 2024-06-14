@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime
 
 # CSS pentru a schimba culorile
-st.markdown(
+st.markdown("""
     <style>
     .stButton>button {
         background-color: #FAD02C;
@@ -27,7 +27,7 @@ st.markdown(
         background-color: #FAD02C;
     }
     </style>
-, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # Fișierele JSON pentru stocarea datelor
 CLIENTS_FILE = 'clients.json'
