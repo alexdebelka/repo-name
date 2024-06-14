@@ -1,8 +1,4 @@
-Sigur, voi reîncepe complet și voi scrie codul de la zero, asigurându-mă că totul este corect.
 
-### Cod complet corectat:
-
-```python
 import json
 import streamlit as st
 import os
