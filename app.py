@@ -199,7 +199,6 @@ elif choice == "Update Credits":
 elif choice == "Purchase Products":
     st.subheader("Purchase Products")
     search_by = st.radio("Search Client by", ("Code", "Name"))
-    client = None  # Inițializăm variabila client
     
     if search_by == "Code":
         client_code = st.text_input("Enter Client Code")
@@ -207,8 +206,7 @@ elif choice == "Purchase Products":
             clients = find_client_by_code(client_code)
             if clients:
                 st.success("Client found")
-                client = clients[0]
-                st.session_state['client'] = client  # Salvăm clientul în session state
+                st.session_state['client'] = clients[0]  # Salvăm clientul în session state
             else:
                 st.error("Client not found")
     elif search_by == "Name":
@@ -217,8 +215,7 @@ elif choice == "Purchase Products":
             clients = find_client_by_name(client_name)
             if clients:
                 st.success("Client found")
-                client = clients[0]
-                st.session_state['client'] = client  # Salvăm clientul în session state
+                st.session_state['client'] = clients[0]  # Salvăm clientul în session state
             else:
                 st.error("Client not found")
 
@@ -235,6 +232,10 @@ elif choice == "Purchase Products":
                 client['credits'] -= total_cost
                 # Adăugăm achiziția în istoricul clientului
                 add_purchase_history(client, product_quantities)
+                clients = read_json(CLIENTS_FILE, default_clients)  # Re-citim clienții pentru a-i actualiza
+                for c in clients:
+                    if c['id'] == client['id']:
+                        c.update(client)
                 write_json(CLIENTS_FILE, clients)
                 st.success(f"Purchase successful! Total cost: {total_cost} RON. Remaining credits: {client['credits']} RON.")
             else:
