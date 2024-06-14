@@ -1,3 +1,8 @@
+Sigur, voi reîncepe complet și voi scrie codul de la zero, asigurându-mă că totul este corect.
+
+### Cod complet corectat:
+
+```python
 import json
 import streamlit as st
 import os
@@ -244,5 +249,4 @@ elif page == "purchase_products":
 
     if 'client' in st.session_state and st.session_state.client:
         client = st.session_state.client
-        products = get_products()
-        product_quantities = {product['name']: st.number_input(f"{product['name']} Quantity
+        products = get_products
