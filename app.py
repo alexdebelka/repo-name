@@ -16,7 +16,7 @@ default_clients = [
         'name': 'edu',
         'email': 'edu@edu.ro',
         'phone': '1234567890',
-        'credits': 100.0,  # Poți schimba valoarea default a creditelor
+        'credits': 100.0,
         'history': []
     }
 ]
@@ -122,10 +122,28 @@ def add_purchase_history(client, products_purchased):
 # Interfața Streamlit
 st.title("Cafenea Prepaid Card System")
 
-menu = ["Add Client", "Find Client", "Manage Products", "Update Credits", "Purchase Products", "View History"]
-choice = st.sidebar.selectbox("Menu", menu)
+# Definim meniul fără dropdown
+st.sidebar.header("Menu")
+menu = {
+    "Add Client": "add_client",
+    "Find Client": "find_client",
+    "Manage Products": "manage_products",
+    "Update Credits": "update_credits",
+    "Purchase Products": "purchase_products",
+    "View History": "view_history"
+}
 
-if choice == "Add Client":
+# Crearea butoanelor pentru fiecare opțiune de meniu
+for item in menu.keys():
+    if st.sidebar.button(item):
+        st.session_state.page = menu[item]
+
+# Obținerea paginii curente din session state
+if 'page' not in st.session_state:
+    st.session_state.page = 'add_client'
+page = st.session_state.page
+
+if page == "add_client":
     st.subheader("Add Client")
     code = st.text_input("Code")
     name = st.text_input("Name")
@@ -136,7 +154,7 @@ if choice == "Add Client":
         add_client(code, name, email, phone, credits)
         st.success("Client added successfully")
 
-elif choice == "Find Client":
+elif page == "find_client":
     st.subheader("Find Client")
     search_by = st.radio("Search by", ("Code", "Name"))
     if search_by == "Code":
@@ -162,7 +180,7 @@ elif choice == "Find Client":
             else:
                 st.warning("Client not found")
 
-elif choice == "Manage Products":
+elif page == "manage_products":
     st.subheader("Manage Products")
     products = get_products()
     product_names = [product['name'] for product in products]
@@ -188,7 +206,7 @@ elif choice == "Manage Products":
     df = pd.DataFrame(products)
     st.dataframe(df)
 
-elif choice == "Update Credits":
+elif page == "update_credits":
     st.subheader("Update Credits")
     client_code = st.text_input("Client Code")
     amount = st.number_input("Amount (RON)", min_value=-100.0, max_value=100.0)
@@ -196,7 +214,7 @@ elif choice == "Update Credits":
         update_credits(client_code, amount)
         st.success("Credits updated successfully")
 
-elif choice == "Purchase Products":
+elif page == "purchase_products":
     st.subheader("Purchase Products")
     search_by = st.radio("Search Client by", ("Code", "Name"))
     client = None  # Inițializăm variabila client
@@ -208,8 +226,10 @@ elif choice == "Purchase Products":
             if clients:
                 st.success("Client found")
                 client = clients[0]
+                st.session_state.client = client
             else:
                 st.error("Client not found")
+                st.session_state.client = None
     elif search_by == "Name":
         client_name = st.text_input("Enter Client Name")
         if st.button("Check Client", key="check_client_name"):
@@ -217,36 +237,12 @@ elif choice == "Purchase Products":
             if clients:
                 st.success("Client found")
                 client = clients[0]
+                st.session_state.client = client
             else:
                 st.error("Client not found")
+                st.session_state.client = None
 
-    if client:
+    if 'client' in st.session_state and st.session_state.client:
+        client = st.session_state.client
         products = get_products()
-        product_quantities = {product['name']: st.number_input(f"{product['name']} Quantity", min_value=0, step=1) for product in products}
-        
-        if st.button("Purchase"):
-            total_cost = sum(product['price'] * quantity for product in products for name, quantity in product_quantities.items() if product['name'] == name)
-            if client['credits'] >= total_cost:
-                client['credits'] -= total_cost
-                # Adăugăm achiziția în istoricul clientului
-                add_purchase_history(client, product_quantities)
-                write_json(CLIENTS_FILE, clients)
-                st.success(f"Purchase successful! Total cost: {total_cost} RON. Remaining credits: {client['credits']} RON.")
-            else:
-                st.error(f"Not enough credits. Total cost: {total_cost} RON. Available credits: {client['credits']} RON.")
-
-elif choice == "View History":
-    st.subheader("View Purchase History")
-    client_code = st.text_input("Enter Client Code")
-    if st.button("View History"):
-        clients = find_client_by_code(client_code)
-        if clients:
-            client = clients[0]
-            if 'history' in client and client['history']:
-                history_df = pd.DataFrame(client['history'])
-                st.write(f"Purchase History for {client['name'].capitalize()}:")
-                st.dataframe(history_df)
-            else:
-                st.write(f"No purchase history for {client['name'].capitalize()}.")
-        else:
-            st.warning("Client not found")
+        product_quantities = {product['name']: st.number_input(f"{product['name']} Quantity
