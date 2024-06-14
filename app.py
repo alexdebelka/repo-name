@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from datetime import datetime
 
-# CSS pentru a schimba culorile
+# CSS pentru a schimba culorile și stilurile
 st.markdown("""
     <style>
     .stButton>button {
@@ -25,6 +25,12 @@ st.markdown("""
     }
     .stDataFrame>div>div>div>table {
         background-color: #FAD02C;
+    }
+    .css-1aumxhk, .css-1aumxhk a {
+        color: #FAD02C;
+    }
+    .css-1aumxhk .css-1aumxhk, .css-1aumxhk .css-1aumxhk a {
+        font-size: 1.2rem;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -49,7 +55,21 @@ default_clients = [
 default_products = [
     {'id': 1, 'name': 'Espresso', 'price': 8.0},
     {'id': 2, 'name': 'Mocha', 'price': 14.0},
-    {'id': 3, 'name': 'Latte', 'price': 10.0}
+    {'id': 3, 'name': 'Latte', 'price': 10.0},
+    # Adaugă aici până la 16 produse pentru a avea două rânduri de câte 8
+    {'id': 4, 'name': 'Cappuccino', 'price': 12.0},
+    {'id': 5, 'name': 'Americano', 'price': 9.0},
+    {'id': 6, 'name': 'Macchiato', 'price': 10.0},
+    {'id': 7, 'name': 'Flat White', 'price': 11.0},
+    {'id': 8, 'name': 'Affogato', 'price': 13.0},
+    {'id': 9, 'name': 'Black Coffee', 'price': 7.0},
+    {'id': 10, 'name': 'Irish Coffee', 'price': 15.0},
+    {'id': 11, 'name': 'Iced Coffee', 'price': 10.0},
+    {'id': 12, 'name': 'Cold Brew', 'price': 14.0},
+    {'id': 13, 'name': 'Nitro Coffee', 'price': 16.0},
+    {'id': 14, 'name': 'Turkish Coffee', 'price': 8.0},
+    {'id': 15, 'name': 'Frappe', 'price': 12.0},
+    {'id': 16, 'name': 'Cortado', 'price': 11.0}
 ]
 
 # Funcții pentru gestionarea fișierelor JSON
@@ -145,9 +165,9 @@ def add_purchase_history(client, products_purchased):
             })
 
 # Interfața Streamlit
-st.title("Cafenea Prepaid Card System")
+st.title("CAFIZZIO")
 
-menu = ["Add Client", "Find Client", "Manage Products", "Update Credits", "Purchase Products", "View History"]
+menu = ["Purchase Products", "Find Client", "View History", "Add Client", "Update Credits", "Manage Products"]
 choice = st.sidebar.radio("Menu", menu)
 
 if choice == "Add Client":
@@ -249,7 +269,11 @@ elif choice == "Purchase Products":
     
     if client:
         products = get_products()
-        product_quantities = {product['name']: st.number_input(f"{product['name']} Quantity", min_value=0, step=1) for product in products}
+        cols = st.columns(8)
+        product_quantities = {}
+        for i, product in enumerate(products):
+            with cols[i % 8]:
+                product_quantities[product['name']] = st.number_input(f"{product['name']} Quantity", min_value=0, step=1)
         
         if st.button("Purchase"):
             total_cost = sum(product['price'] * quantity for product in products for name, quantity in product_quantities.items() if product['name'] == name)
