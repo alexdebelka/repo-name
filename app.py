@@ -3,7 +3,16 @@ import streamlit as st
 import os
 import pandas as pd
 from datetime import datetime
+import numpy as np
 
+st.title("CAFIZZIO")
+
+menu = ["Purchase Products", "Find Client", "View History", "Add Client", "Update Credits", "Manage Products"]
+choice = st.sidebar.radio("Menu", menu)
+
+if choice == "Purchase Products":
+    st.subheader("Purchase Products")
+    st.write("This is the Purchase Products page.")
 # CSS pentru a schimba culorile și stilurile
 st.markdown("""
     <style>
