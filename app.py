@@ -5,14 +5,6 @@ import pandas as pd
 from datetime import datetime
 import numpy as np
 
-st.title("CAFIZZIO")
-
-menu = ["Purchase Products", "Find Client", "View History", "Add Client", "Update Credits", "Manage Products"]
-choice = st.sidebar.radio("Menu", menu)
-
-if choice == "Purchase Products":
-    st.subheader("Purchase Products")
-    st.write("This is the Purchase Products page.")
 # CSS pentru a schimba culorile și stilurile
 st.markdown("""
     <style>
@@ -56,7 +48,7 @@ default_clients = [
         'name': 'edu',
         'email': 'edu@edu.ro',
         'phone': '1234567890',
-        'credits': 100.0,  # Poți schimba valoarea default a creditelor
+        'credits': 100.0,
         'history': []
     }
 ]
@@ -65,7 +57,6 @@ default_products = [
     {'id': 1, 'name': 'Espresso', 'price': 8.0},
     {'id': 2, 'name': 'Mocha', 'price': 14.0},
     {'id': 3, 'name': 'Latte', 'price': 10.0},
-    # Adaugă aici până la 16 produse pentru a avea două rânduri de câte 8
     {'id': 4, 'name': 'Cappuccino', 'price': 12.0},
     {'id': 5, 'name': 'Americano', 'price': 9.0},
     {'id': 6, 'name': 'Macchiato', 'price': 10.0},
@@ -89,7 +80,7 @@ def read_json(file, default_data):
     with open(file, 'r') as f:
         try:
             data = json.load(f)
-            if not data:  # Dacă fișierul este gol, îl populăm cu datele default
+            if not data:
                 data = default_data
                 write_json(file, data)
             return data
@@ -100,9 +91,8 @@ def write_json(file, data):
     try:
         with open(file, 'w') as f:
             json.dump(data, f, indent=4)
-        print(f"Successfully written to {file}")
     except Exception as e:
-        print(f"Error writing to {file}: {e}")
+        st.error(f"Error writing to {file}: {e}")
 
 # Funcție pentru adăugarea unui client nou
 def add_client(code, name, email, phone, credits):
@@ -119,12 +109,12 @@ def add_client(code, name, email, phone, credits):
     clients.append(new_client)
     write_json(CLIENTS_FILE, clients)
 
-# Funcție pentru găsirea unui client după cod (case insensitive)
+# Funcție pentru găsirea unui client după cod
 def find_client_by_code(code):
     clients = read_json(CLIENTS_FILE, default_clients)
     return [client for client in clients if client['code'] == code.lower()]
 
-# Funcție pentru găsirea unui client după nume (case insensitive)
+# Funcție pentru găsirea unui client după nume
 def find_client_by_name(name):
     clients = read_json(CLIENTS_FILE, default_clients)
     return [client for client in clients if client['name'] == name.lower()]
@@ -260,7 +250,7 @@ elif choice == "Purchase Products":
             clients = find_client_by_code(client_code)
             if clients:
                 st.success("Client found")
-                st.session_state['client'] = clients[0]  # Salvăm clientul în session state
+                st.session_state['client'] = clients[0]
             else:
                 st.error("Client not found")
     elif search_by == "Name":
@@ -269,11 +259,10 @@ elif choice == "Purchase Products":
             clients = find_client_by_name(client_name)
             if clients:
                 st.success("Client found")
-                st.session_state['client'] = clients[0]  # Salvăm clientul în session state
+                st.session_state['client'] = clients[0]
             else:
                 st.error("Client not found")
 
-    # Verificăm dacă avem client în session state
     client = st.session_state.get('client', None)
     
     if client:
@@ -288,9 +277,8 @@ elif choice == "Purchase Products":
             total_cost = sum(product['price'] * quantity for product in products for name, quantity in product_quantities.items() if product['name'] == name)
             if client['credits'] >= total_cost:
                 client['credits'] -= total_cost
-                # Adăugăm achiziția în istoricul clientului
                 add_purchase_history(client, product_quantities)
-                clients = read_json(CLIENTS_FILE, default_clients)  # Re-citim clienții pentru a-i actualiza
+                clients = read_json(CLIENTS_FILE, default_clients)
                 for c in clients:
                     if c['id'] == client['id']:
                         c.update(client)
@@ -314,3 +302,4 @@ elif choice == "View History":
                 st.write(f"No purchase history for {client['name'].capitalize()}.")
         else:
             st.warning("Client not found")
+
