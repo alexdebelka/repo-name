@@ -3,7 +3,6 @@ import streamlit as st
 import os
 import pandas as pd
 from datetime import datetime
-import numpy as np
 
 # CSS pentru a schimba culorile și stilurile
 st.markdown("""
